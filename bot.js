@@ -1,54 +1,62 @@
 const fs = require('fs');
-const path = require('path');
 const Discord = require('discord.js');
+const config = require('./config.json');
 
-// Load the config file
-let config;
-try {
-  config = require('./config.json');
-} catch (error) {
-  console.error('Failed to load config file:', error);
-  process.exit(1);
-}
-
-// Set up the Discord client
 const client = new Discord.Client({
-  intents: [
-    Discord.Intents.FLAGS.GUILDS,
-    Discord.Intents.FLAGS.GUILD_MESSAGES
-  ]
+    intents: ['GUILDS', 'GUILD_MESSAGES']
 });
 
-// Set the directory to monitor
-const directoryPath = config.path;
-
-// Set the channel to send the message to
-const channelID = config.channelID;
-
-// Set the file extension to monitor
-const fileExtension = config.fileExtension;
-
-// Watch the directory recursively for new files and folders with the specified extension
-fs.watch(directoryPath, { recursive: true }, (eventType, filename) => {
-  if (filename && eventType === 'rename' && path.extname(filename) === `.${fileExtension}`) {
-    const renamedFilename = `${path.parse(filename).name}.txt`;
-    fs.rename(path.join(directoryPath, filename), path.join(directoryPath, renamedFilename), (err) => {
-      if (err) {
-        console.error(`Failed to rename file ${filename}:`, err);
-        return;
-      }
-      const attachment = new Discord.MessageAttachment(path.join(directoryPath, renamedFilename));
-      const embedMessage = new Discord.MessageEmbed()
-        .setTitle('New file uploaded')
-        .setColor('#00FF00')
-        .setDescription(`File ${filename} has been renamed to ${renamedFilename} and uploaded!`)
-      client.channels.cache.get(channelID).send({ embeds: [embedMessage], files: [attachment] })
-        .then(() => console.log(`File ${renamedFilename} sent to channel ${channelID}!`))
-        .catch(console.error);
-    });
-  }
+client.on('ready', () => {
+    console.log(`Logged in as ${client.user.tag}!`);
 });
 
-// Log in to Discord
-const token = config.token;
-client.login(token);
+client.login(config.token);
+
+fs.watch(config.path, { recursive: true }, (eventType, filename) => {
+    if (eventType === 'rename') {
+        if (filename.endsWith(`.${config.fileExtension}`)) {
+            console.log(`File event detected: ${eventType} - ${filename}`);
+            const renamedFile = filename.replace(/(\s+)/g, '\\$1');
+            fs.rename(`${config.path}/${renamedFile}`, `${config.path}/${renamedFile}.txt`, (err) => {
+                if (err) throw err;
+                console.log(`${filename} renamed to ${renamedFile}.txt`);
+                const channel = client.channels.cache.get(config.channelId);
+                if (!channel) {
+                    console.error(`Invalid channel ID: ${config.channelId}`);
+                    return;
+                }
+                const attachment = new Discord.MessageAttachment(`${config.path}/${renamedFile}.txt`);
+                channel.send({ files: [attachment] })
+                    .then(() => console.log(`File sent to Discord: ${renamedFile}.txt`))
+                    .catch(console.error);
+            });
+        } else {
+            console.log(`Not a .${config.fileExtension} file, ignoring...`);
+        }
+    } else if (eventType === 'mkdir') {
+        console.log(`Folder created: ${filename}`);
+        fs.watch(`${config.path}/${filename}`, { recursive: true }, (event, file) => {
+            if (event === 'rename') {
+                if (file.endsWith(`.${config.fileExtension}`)) {
+                    console.log(`File event detected: ${event} - ${file}`);
+                    const renamedFile = file.replace(/(\s+)/g, '\\$1');
+                    fs.rename(`${config.path}/${filename}/${renamedFile}`, `${config.path}/${filename}/${renamedFile}.txt`, (err) => {
+                        if (err) throw err;
+                        console.log(`${file} renamed to ${renamedFile}.txt`);
+                        const channel = client.channels.cache.get(config.channelId);
+                        if (!channel) {
+                            console.error(`Invalid channel ID: ${config.channelId}`);
+                            return;
+                        }
+                        const attachment = new Discord.MessageAttachment(`${config.path}/${filename}/${renamedFile}.txt`);
+                        channel.send({ files: [attachment] })
+                            .then(() => console.log(`File sent to Discord: ${renamedFile}.txt`))
+                            .catch(console.error);
+                    });
+                } else {
+                    console.log(`Not a .${config.fileExtension} file, ignoring...`);
+                }
+            }
+        });
+    }
+});
