@@ -1,6 +1,6 @@
 {
   "token": "YOUR_DISCORD_BOT_TOKEN",
-  "channel": "YOUR_DISCORD_CHANNEL_ID",
-  "path": "/home/andi/test/send",
-  "extension": ".ADM"
+  "channelID": "CHANNEL-ID",
+  "path": "/path/to/watch",
+  "fileExtension": ".ADM"
 }
