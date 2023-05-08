@@ -1,0 +1,5 @@
+{
+  "token": "YOUR_DISCORD_BOT_TOKEN",
+  "channelID": "YOUR_DISCORD_CHANNEL_ID",
+  "directoryPath": "/path/to/directory"
+}
