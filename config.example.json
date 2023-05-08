@@ -1,6 +1,6 @@
 {
-  "token": "YOUR_DISCORD_BOT_TOKEN",
+  "token": "DISCORD-TOKEN",
   "channelID": "CHANNEL-ID",
   "path": "/path/to/watch",
-  "fileExtension": ".ADM"
+  "fileExtension": ".TXT"
 }
