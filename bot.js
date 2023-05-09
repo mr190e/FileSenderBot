@@ -1,15 +1,6 @@
 const fs = require('fs');
 const Discord = require('discord.js');
 
-// Load config from config.json
-let config;
-try {
-  config = require('./config.json');
-} catch (error) {
-  console.error('Could not load config file!');
-  process.exit(1);
-}
-
 const client = new Discord.Client({
   intents: [
     Discord.Intents.FLAGS.GUILDS,
@@ -19,6 +10,7 @@ const client = new Discord.Client({
 
 client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`);
+  botStartTime = new Date();
 });
 
 async function sendFileToChannel(channel, filePath, fileCreationTime, fileName) {
@@ -31,6 +23,7 @@ async function sendFileToChannel(channel, filePath, fileCreationTime, fileName) 
 let previousFileList = [];
 
 function checkForNewFiles(channel, directoryPath, fileExtension) {
+
   // Get a list of files and subdirectories in the directory
   const fileList = fs.readdirSync(directoryPath, { withFileTypes: true });
 
@@ -38,22 +31,29 @@ function checkForNewFiles(channel, directoryPath, fileExtension) {
   const newFiles = fileList.filter((file) => file.isFile() && file.name.endsWith(fileExtension));
 
   // Filter the new files to exclude files that were already sent in the previous check
-  const uniqueNewFiles = newFiles.filter((file) => !previousFileList.includes(file.name));
+  const uniqueNewFiles = newFiles.filter((file) => {
+    if (!previousFileList.includes(file.name)) {
+      const fileCreationTime = fs.statSync(`${directoryPath}/${file.name}`).ctime;
+      return fileCreationTime > botStartTime;
+    }
+    return false;
+  });
+
+  console.log(`${uniqueNewFiles.length} new files found.`);
 
   // Rename the new files to .txt extension and send them to the specified Discord channel
   uniqueNewFiles.forEach((file) => {
-    const newFileName = file.name.slice(0, -fileExtension.length) + '.txt';
     const oldFilePath = `${directoryPath}/${file.name}`;
-    const newFilePath = `${directoryPath}/${newFileName}`;
+    const newFilePath = `${directoryPath}/${file.name}.txt`;
+
+    // Create a copy of the file with .txt extension
+    fs.copyFileSync(oldFilePath, newFilePath);
 
     // Get the creation time of the new file
-    const fileCreationTime = fs.statSync(oldFilePath).ctime;
-
-    // Rename the file
-    fs.renameSync(oldFilePath, newFilePath);
+    const fileCreationTime = fs.statSync(newFilePath).ctime;
 
     // Send a message containing the file creation time, filename and the renamed file as a file attachment to the specified Discord channel
-    sendFileToChannel(channel, newFilePath, fileCreationTime, file.name);
+    sendFileToChannel(channel, newFilePath, fileCreationTime, `${file.name}.txt`);
   });
 
   // Update the previous file list to include the new files
@@ -66,17 +66,12 @@ function checkForNewFiles(channel, directoryPath, fileExtension) {
   });
 }
 
-// Load config variables
-const channelId = config.channelId;
-const directoryPath = config.directoryPath;
-const fileExtension = config.fileExtension;
-const token = config.token;
-
-// Check if config variables are set
-if (!channelId || !directoryPath || !fileExtension || !token) {
-  console.error('Incomplete config file!');
-  process.exit(1);
-}
+// Replace this with the ID of the Discord channel you want to send the files to
+const channelId = 'Channel-ID';
+// Replace this with the path to the directory you want to monitor
+const directoryPath = '/path/to/watch';
+// Replace this with the file extension you want to look for
+const fileExtension = '.TXT';
 
 let firstRun = true;
 
@@ -91,4 +86,9 @@ setInterval(() => {
     });
     firstRun = false;
   } else {
-    checkForNewFiles(channel, directoryPath,
+    checkForNewFiles(channel, directoryPath, fileExtension);
+  }
+}, 6000); // Run every minute
+
+// Replace this with your Discord bot token
+client.login('Discord-Token');
