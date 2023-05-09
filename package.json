@@ -1,7 +1,6 @@
 {
   "dependencies": {
-    "discord.js": "^13.16.0",
-    "fs": "^0.0.1-security",
-    "path": "^0.12.7"
+    "discord.js": "13.16",
+    "fs": "^0.0.1-security"
   }
 }
