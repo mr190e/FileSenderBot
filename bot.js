@@ -88,7 +88,7 @@ setInterval(() => {
   } else {
     checkForNewFiles(channel, directoryPath, fileExtension);
   }
-}, 6000); // Run every minute
+}, 60000); // Run every minute
 
 // Replace this with your Discord bot token
 client.login('Discord-Token');
