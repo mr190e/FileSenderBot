@@ -1,6 +1,6 @@
 {
-  "token": "DISCORD-TOKEN",
-  "channelID": "CHANNEL-ID",
-  "path": "/path/to/watch",
-  "fileExtension": ".TXT"
+  "channelId": "12312313123123123123",
+  "directoryPath": "/path/to/watch",
+  "fileExtension": ".ADM",
+  "discordToken": "Your-Discord-Token"
 }
