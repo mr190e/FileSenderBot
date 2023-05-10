@@ -16,7 +16,7 @@ client.on('ready', () => {
 async function sendFileToChannel(channel, filePath, fileCreationTime, fileName) {
   const attachment = new Discord.MessageAttachment(filePath);
   const fileCreationDate = fileCreationTime.toLocaleString();
-  const messageText = `New file "${fileName}" found created at ${fileCreationDate}`;
+  const messageText = `${fileCreationDate} new log file "${fileName}"`;
   await channel.send({ content: messageText, files: [attachment] });
 }
 
@@ -31,15 +31,23 @@ function checkForNewFiles(channel, directoryPath, fileExtension) {
   const newFiles = fileList.filter((file) => file.isFile() && file.name.endsWith(fileExtension));
 
   // Filter the new files to exclude files that were already sent in the previous check
-  const uniqueNewFiles = newFiles.filter((file) => {
-    if (!previousFileList.includes(file.name)) {
-      const fileCreationTime = fs.statSync(`${directoryPath}/${file.name}`).ctime;
-      return fileCreationTime > botStartTime;
-    }
-    return false;
-  });
+	const uniqueNewFiles = newFiles.filter((file) => {
+	  if (!previousFileList.includes(file.name)) {
+		const filePath = `${directoryPath}/${file.name}`;
+		const fileStats = fs.statSync(filePath);
+		const fileCreationTime = fileStats.ctime;
+		const fileSize = fileStats.size;
+		if (fileSize < 10240) { // 10 kilobytes = 10240 bytes
+		  return false;
+		}
+		return fileCreationTime > botStartTime;
+	  }
+	  return false;
+	});
 
-  console.log(`${uniqueNewFiles.length} new files found.`);
+  if (uniqueNewFiles.length > 0) {
+    console.log(`${uniqueNewFiles.length} new files found.`);
+  }
 
   // Rename the new files to .txt extension and send them to the specified Discord channel
   uniqueNewFiles.forEach((file) => {
@@ -54,6 +62,7 @@ function checkForNewFiles(channel, directoryPath, fileExtension) {
 
     // Send a message containing the file creation time, filename and the renamed file as a file attachment to the specified Discord channel
     sendFileToChannel(channel, newFilePath, fileCreationTime, `${file.name}.txt`);
+	console.log(`New file "${file.name}" of size ${fs.statSync(newFilePath).size} bytes sent to ${channel.name}.`);
   });
 
   // Update the previous file list to include the new files
@@ -71,7 +80,7 @@ const channelId = 'Channel-ID';
 // Replace this with the path to the directory you want to monitor
 const directoryPath = '/path/to/watch';
 // Replace this with the file extension you want to look for
-const fileExtension = '.TXT';
+const fileExtension = '.ADM';
 
 let firstRun = true;
 
