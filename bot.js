@@ -35,7 +35,7 @@ function checkForNewFiles(channel, directoryPath, fileExtension) {
 	  if (!previousFileList.includes(file.name)) {
 		const filePath = `${directoryPath}/${file.name}`;
 		const fileStats = fs.statSync(filePath);
-		const fileCreationTime = fileStats.ctime;
+		const fileCreationTime = fileStats.mtime;
 		const fileSize = fileStats.size;
 		if (fileSize < 10240) { // 10 kilobytes = 10240 bytes
 		  return false;
