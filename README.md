@@ -12,6 +12,14 @@ The bot is created to run on windows server 2022. Not sure how it will run under
 
 Feel free to commit and fork.
 
-to install just use
+To run the bot install just use
 
-"git clone https://github.com/mr190e/FileSenderBot/"
+```
+git clone https://github.com/mr190e/FileSenderBot
+
+npm install
+
+nano config.json
+
+node bot.js
+```
