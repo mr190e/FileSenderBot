@@ -6,4 +6,6 @@ A Discord bot that watches folders for new files, renames them and attaches them
 
 This bot is based on Discord.js v13
 
-Rename config.example.json to config.json and set it up
+Add your information in to config.json to set it up
+
+The bot is created to run on windows server 2022. Not sure how it will run under any other OS, especially becauase the file creation date/time is handled different per OS and per NodeJS version, as well as fs version.
