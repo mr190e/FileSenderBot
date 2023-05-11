@@ -1,12 +1,7 @@
 WORK IN PROGRESS
 
 # FileSenderBot
-A Discord bot that watches folders for new files, renames them and attaches them to a discord message
-
-
-This bot is based on Discord.js v13
-
-Add your information in to config.json to set it up
+A Discord bot that watches a folder for new folders and sends a certain file to a discord channel. It also checks the size of that file to prevent sending "empty" files.
 
 The bot is created to run on windows server 2022. Not sure how it will run under any other OS, especially becauase the file creation date/time is handled different per OS and per NodeJS version, as well as fs version.
 
@@ -23,3 +18,4 @@ nano config.json
 
 node bot.js
 ```
+This bot is based on Discord.js v13
