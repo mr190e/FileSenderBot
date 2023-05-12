@@ -45,7 +45,7 @@ async function sendFileInfo(file) {
     const attachment = new MessageAttachment(file);
 
     const embed = new MessageEmbed()
-      .setTitle('New File')
+      .setTitle('New ADM file found')
       .setDescription('File information')
       .addField('Creation Date', fileInfo.creationDate)
       .addField('File Name', fileInfo.fileName)
